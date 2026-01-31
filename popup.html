@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1 class="logo-text">
+          <span class="white">Leet</span><span class="orange">Code</span>
+          <span class="white"> Logger</span>
+        </h1>
+      </div>
+
+      <!-- Description -->
+      <div class="description">
+        <i class="fa-regular fa-keyboard"></i>
+        <h2>Automate Your Progress</h2>
+        <h5>
+          Sync your LeetCode solved problems,<br />difficulty levels and notes
+          directly to your<br />Google sheets.
+        </h5>
+      </div>
+
+      <!-- Setup Section -->
+      <button id="authButton" class="btn btn-primary google-btn">
+        <img src="./google-logo.svg" alt="Google" class="google-logo" />
+        <span>Sign in with Google</span>
+      </button>
+      <div id="sheetSetup" class="hidden">
+        <div class="input-group">
+          <label>Spreadsheet ID</label>
+          <input
+            type="text"
+            id="spreadsheetId"
+            placeholder="Leave blank to create new sheet"
+          />
+        </div>
+
+        <button id="saveSheet" class="btn-primary">Save Configuration</button>
+        <button id="createNew" class="btn-secondary">Create New Sheet</button>
+
+        <!-- Help Link -->
+        <a href="#" id="helpLink" class="help-link"
+          >How to get Spreadsheet ID?</a
+        >
+      </div>
+    </div>
+
+    <!-- Connected Section -->
+    <div id="connectedSection" class="connected hidden">
+      <!-- Auto-logging Toggle -->
+      <div class="toggle-container">
+        <span class="toggle-label">Auto-logging</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="autoLogToggle" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!--Pending section-->
+      <div id="pendingSection" class="hidden">
+        <div class="pending-problem">
+          <h3>Problem Solved!</h3>
+          <div class="problem-details">
+            <div class="problem-name" id="pendingProblemName">Two Sum</div>
+            <span class="difficulty-badge" id="pendingDifficulty">Easy</span>
+          </div>
+
+          <div class="input-group">
+            <textarea
+              id="noteInput"
+              placeholder="NOTE... E.g., Used two pointers, O(n) time complexity..."
+              rows="3"
+            ></textarea>
+          </div>
+
+          <div class="button-row">
+            <button id="denyBtn" class="btn-secondary">Deny</button>
+            <button id="logBtn" class="btn-secondary">Log Problem</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <button id="openSheet" class="btn-secondary">
+        <span>Open Sheet</span>
+      </button>
+
+      <button id="signOut" class="btn-secondary">
+        <span>Sign Out</span>
+      </button>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

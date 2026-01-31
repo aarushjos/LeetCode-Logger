@@ -1,0 +1,175 @@
+const SHEETS_API = "https://sheets.googleapis.com/v4/spreadsheets";
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "PROBLEM_SOLVED") {
+    handleProblemSolved(message.data);
+  }
+});
+
+async function handleProblemSolved(problemData) {
+  try {
+    const { spreadsheetId, autoLog } = await chrome.storage.local.get([
+      "spreadsheetId",
+      "autoLog",
+    ]);
+
+    if (!spreadsheetId) {
+      console.log("No spreadsheet configed");
+      showNoti("Setup required", "Please configure Google Sheets");
+      return;
+    }
+    if (autoLog === false) {
+      console.log("Auto logging disabled adding problem as pending");
+      await chrome.storage.local.set({ pendingProblem: problemData });
+
+      //show badge noti
+      chrome.action.setBadgeText({ text: "1" });
+      chrome.action.setBadgeBackgroundColor({ color: "#10b981" });
+
+      showNoti("Problem Solved!", "Open extension to add note and log");
+
+      return;
+    }
+    const isDup = await isDuplicate(spreadsheetId, problemData.url);
+    if (isDup) {
+      console.log("Problem already logged");
+      showNoti(
+        "Already Logged",
+        `${problemData.problemName} is already in your sheet`,
+      );
+      return;
+    }
+
+    await logToSheet(spreadsheetId, problemData);
+    showNoti("Logged!", `${problemData.problemName} logged to Google Sheets`);
+  } catch (error) {
+    console.log("logging problem error: ", error);
+    showNoti("Error", "Failed to log problem. Check extension popup.");
+  }
+}
+
+async function logProblemWithNote(data) {
+  try {
+    const { spreadsheetId } = await chrome.storage.local.get("spreadsheetId");
+
+    if (!spreadsheetId) {
+      throw new Error("No spreadsheet configed");
+    }
+
+    const isDup = isDuplicate(spreadsheetId, data.url);
+    if (isDup) {
+      showNoti("Already logged", `${data.problemName} is already in ur sheet`);
+      return;
+    }
+
+    await logToSheet(spreadsheetId, data);
+
+    //clear pending
+    await chrome.storage.local.remove("pendingProblem");
+    chrome.action.setBadgeText({ text: "" });
+
+    console.log("Successfully logged(manual)");
+    showNoti("Logged", `${data.problemName} logged success`);
+  } catch (error) {
+    console.error("error logging: ", error);
+    throw error;
+  }
+}
+
+async function logToSheet(spreadsheetId, data) {
+  const token = await getAuthToken();
+
+  const values = [
+    [
+      new Date().toLocaleDateString(),
+      new Date().toLocaleTimeString(),
+      data.problemName,
+      data.topic,
+      data.difficulty,
+      data.url,
+      data.note || "",
+    ],
+  ];
+  const response = await fetch(
+    `${SHEETS_API}/${spreadsheetId}/values/Sheet1!A:G:append?valueInputOption=RAW`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ values }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to append to sheet");
+  }
+
+  return response.json();
+}
+
+async function getAuthToken() {
+  return new Promise((resolve, reject) => {
+    chrome.identity.getAuthToken({ interactive: false }, (token) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(token);
+      }
+    });
+  });
+}
+
+async function isDuplicate(spreadsheetId, url) {
+  try {
+    if (!spreadsheetId) return false;
+
+    const token = await getAuthToken();
+
+    const response = await fetch(
+      `${SHEETS_API}/${spreadsheetId}/values/Sheet1!F:F`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    const links = data.values ? data.values.flat() : [];
+
+    const isDup = links.includes(url);
+
+    return isDup;
+  } catch (error) {
+    console.error("Error checking dups", error);
+    return false;
+  }
+}
+
+function showNoti(title, message) {
+  console.log("Trying noti", title, message);
+  try {
+    chrome.notifications.create(
+      {
+        type: "basic",
+        iconUrl: "icon48.png",
+        title: title,
+        message: message,
+      },
+      (notificationId) => {
+        if (chrome.runtime.lastError) {
+          console.error("Noti error: ", chrome.runtime.lastError);
+        } else {
+          console.log("Noti created with ID: ", notificationId);
+        }
+      },
+    );
+  } catch (error) {
+    console.error("Error creating noti: ", error);
+  }
+}
