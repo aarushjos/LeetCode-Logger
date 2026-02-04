@@ -1,4 +1,5 @@
 const SHEETS_API = "https://sheets.googleapis.com/v4/spreadsheets";
+let notifiedProblems = new Set();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "PROBLEM_SOLVED") {
@@ -33,10 +34,17 @@ async function handleProblemSolved(problemData) {
     const isDup = await isDuplicate(spreadsheetId, problemData.url);
     if (isDup) {
       console.log("Problem already logged");
-      showNoti(
-        "Already Logged",
-        `${problemData.problemName} is already in your sheet`,
-      );
+      if (!notifiedProblems.has(problemData.url)) {
+        notifiedProblems.add(problemData.url);
+        showNoti(
+          "Already Logged",
+          `${problemData.problemName} is already in your sheet`,
+        );
+      } else {
+        console.log(
+          "Already notified user about this duplicate, skipping notification",
+        );
+      }
       return;
     }
 
@@ -142,7 +150,16 @@ async function isDuplicate(spreadsheetId, url) {
     const data = await response.json();
     const links = data.values ? data.values.flat() : [];
 
-    const isDup = links.includes(url);
+    const getBaseProblemUrl = (url) => {
+      const match = url.match(/(https:\/\/leetcode\.com\/problems\/[^\/]+)/);
+      return match ? match[1] : url;
+    };
+    const baseUrl = getBaseProblemUrl(url);
+
+    const isDup = links.some((existingLink) => {
+      const existingBaseUrl = getBaseProblemUrl(existingLink);
+      return existingBaseUrl === baseUrl;
+    });
 
     return isDup;
   } catch (error) {

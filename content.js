@@ -1,4 +1,5 @@
 let lastCheckedSub = null;
+let alreadyNotifiedForThisProblem = false;
 
 function getProblemInfo() {
   //Problem name
@@ -40,8 +41,15 @@ function checkForAcceptedSubmission() {
       if (!lastCheckedSub || timestamp - lastCheckedSub > 5000) {
         lastCheckedSub = timestamp;
 
+        if (alreadyNotifiedForThisProblem) {
+          console.log("⏭️ Already sent this problem, skipping");
+          return true;
+        }
+
         const problemInfo = getProblemInfo();
         console.log("Problem solved!", problemInfo);
+
+        alreadyNotifiedForThisProblem = true;
 
         chrome.runtime.sendMessage({
           type: "PROBLEM_SOLVED",
