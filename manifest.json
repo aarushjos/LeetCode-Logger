@@ -1,7 +1,7 @@
 {
     "manifest_version":3,
     "name":"LeetCode Logger",
-    "version":"1.0.1",
+    "version":"1.0",
     "description":"Automatically log solved LeetCode Problems to Google Sheets",
     "permissions":[
         "storage",
