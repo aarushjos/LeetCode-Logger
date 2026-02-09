@@ -4,4 +4,4 @@ LeetCode Logger is a Chrome extension that automatically logs solved LeetCode pr
 
 ## Privacy Policy
 You can view the full privacy policy here:  
-[Privacy Policy](./PRIVACY)
+[Privacy Policy](https://aarushjos.github.io/LeetCode-Logger/PRIVACY)
