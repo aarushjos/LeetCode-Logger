@@ -2,4 +2,6 @@
 
 LeetCode Logger is a Chrome extension that automatically logs solved LeetCode problems to Google Sheets.
 
-For details, see the GitHub repository.
+## Privacy Policy
+You can view the full privacy policy here:  
+[Privacy Policy](./PRIVACY)
