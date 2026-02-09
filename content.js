@@ -29,9 +29,6 @@ function checkForAcceptedSubmission() {
   const acceptedElements = [
     ...document.querySelectorAll('[data-e2e-locator="submission-result"]'),
     ...document.querySelectorAll('[class*="accepted"]'),
-    ...Array.from(document.querySelectorAll("span, div")).filter(
-      (el) => el.textContent.trim() === "Accepted",
-    ),
   ];
 
   for (const element of acceptedElements) {

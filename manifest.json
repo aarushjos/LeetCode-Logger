@@ -32,7 +32,7 @@
         "default_popup":"popup.html"
     },
     "oauth2":{
-        "client_id":"181358258406-dm00kh7gt4fmgptoltsghje1ohr22fpj.apps.googleusercontent.com",
+        "client_id":"920480244272-bpi5ajocfr361o068hn7p4oc912s77vp.apps.googleusercontent.com",
         "scopes":[
             "https://www.googleapis.com/auth/spreadsheets"
         ]

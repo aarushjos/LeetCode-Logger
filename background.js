@@ -7,6 +7,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+function getBaseProblemUrl(url) {
+  const match = url.match(/(https:\/\/leetcode\.com\/problems\/[^\/]+)/);
+  return match ? match[1] : url;
+}
+
 async function handleProblemSolved(problemData) {
   try {
     const { spreadsheetId, autoLog } = await chrome.storage.local.get([
@@ -16,7 +21,6 @@ async function handleProblemSolved(problemData) {
 
     if (!spreadsheetId) {
       console.log("No spreadsheet configed");
-      showNoti("Setup required", "Please configure Google Sheets");
       return;
     }
     if (autoLog === false) {
@@ -32,10 +36,11 @@ async function handleProblemSolved(problemData) {
       return;
     }
     const isDup = await isDuplicate(spreadsheetId, problemData.url);
+    const baseUrl = getBaseProblemUrl(problemData.url);
     if (isDup) {
       console.log("Problem already logged");
-      if (!notifiedProblems.has(problemData.url)) {
-        notifiedProblems.add(problemData.url);
+      if (!notifiedProblems.has(baseUrl)) {
+        notifiedProblems.add(baseUrl);
         showNoti(
           "Already Logged",
           `${problemData.problemName} is already in your sheet`,
@@ -64,7 +69,7 @@ async function logProblemWithNote(data) {
       throw new Error("No spreadsheet configed");
     }
 
-    const isDup = isDuplicate(spreadsheetId, data.url);
+    const isDup = await isDuplicate(spreadsheetId, data.url);
     if (isDup) {
       showNoti("Already logged", `${data.problemName} is already in ur sheet`);
       return;
@@ -86,6 +91,7 @@ async function logProblemWithNote(data) {
 
 async function logToSheet(spreadsheetId, data) {
   const token = await getAuthToken();
+  const normalizedUrl = getBaseProblemUrl(data.url);
 
   const values = [
     [
@@ -94,7 +100,7 @@ async function logToSheet(spreadsheetId, data) {
       data.problemName,
       data.topic,
       data.difficulty,
-      data.url,
+      normalizedUrl,
       data.note || "",
     ],
   ];
@@ -149,11 +155,6 @@ async function isDuplicate(spreadsheetId, url) {
 
     const data = await response.json();
     const links = data.values ? data.values.flat() : [];
-
-    const getBaseProblemUrl = (url) => {
-      const match = url.match(/(https:\/\/leetcode\.com\/problems\/[^\/]+)/);
-      return match ? match[1] : url;
-    };
     const baseUrl = getBaseProblemUrl(url);
 
     const isDup = links.some((existingLink) => {
